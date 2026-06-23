@@ -7,7 +7,13 @@ def set_up(user_overrides: dict):
     '''
 
     # overrides for this specific printer relative those defined in base_settings.py
-    printer_overrides = {}
+    printer_overrides = {
+        "printer_command_list": {
+            **base_settings.default_initial_settings["printer_command_list"],
+            "retract": "G1 E-2 F2700 ; retract",
+            "unretract": "G1 E2 F2700 ; unretract",
+        }
+    }
     # update default initialization settings with printer-specific overrides and user-defined overrides
     initialization_data = {**base_settings.default_initial_settings, **printer_overrides}
     initialization_data = {**initialization_data, **user_overrides}
@@ -33,13 +39,18 @@ def set_up(user_overrides: dict):
         text='M220 S' + str(initialization_data["print_speed_percent"])+' ; set speed factor override percentage'))
     starting_procedure_steps.append(ManualGcode(
         text='M221 S' + str(initialization_data["material_flow_percent"])+' ; set extrude factor override percentage'))
-    starting_procedure_steps.append(Extruder(on=False))
-    starting_procedure_steps.append(Point(x=5, y=5, z=10))
-    starting_procedure_steps.append(StationaryExtrusion(volume=50, speed=250))
-    starting_procedure_steps.append(Printer(travel_speed=250))
-    starting_procedure_steps.append(Point(z=50))
-    starting_procedure_steps.append(Printer(travel_speed=initialization_data["travel_speed"]))
-    starting_procedure_steps.append(Point(x=10.0, y=10.0, z=0.3))
+    # The following stationary purge sequence was part of the original FullControl start procedure:
+    # move to a corner at Z10, push 50mm³ of filament to prime the nozzle, lift Z to break off the
+    # ooze blob, then travel to start position. It has been disabled because the left_lines primer
+    # (two purge lines along the left bed edge, matching the Cura/Ender 3 start script) serves the
+    # same purpose more effectively and avoids redundant priming. Re-enable if switching primers.
+    # starting_procedure_steps.append(Extruder(on=False))
+    # starting_procedure_steps.append(Point(x=5, y=5, z=10))
+    # starting_procedure_steps.append(StationaryExtrusion(volume=50, speed=250))
+    # starting_procedure_steps.append(Printer(travel_speed=250))
+    # starting_procedure_steps.append(Point(z=50))
+    # starting_procedure_steps.append(Printer(travel_speed=initialization_data["travel_speed"]))
+    # starting_procedure_steps.append(Point(x=10.0, y=10.0, z=0.3))
     starting_procedure_steps.append(Extruder(on=True))
     starting_procedure_steps.append(ManualGcode(text=';-----\n; END OF STARTING PROCEDURE\n;-----\n'))
 

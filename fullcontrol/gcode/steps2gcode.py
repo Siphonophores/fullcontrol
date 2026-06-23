@@ -35,7 +35,7 @@ def gcode(steps: list, gcode_controls: GcodeControls, show_tips: bool):
 
     if gcode_controls.save_as != None:
         filename = gcode_controls.save_as
-        filename += datetime.now().strftime("__%d-%m-%Y__%H-%M-%S.gcode") if gcode_controls.include_date == True else '.gcode'
+        filename += datetime.now().strftime("_%d%b_%H-%M.gcode").lower() if gcode_controls.include_date == True else '.gcode'
         open(filename, 'w').write(gc)
 
     return gc
